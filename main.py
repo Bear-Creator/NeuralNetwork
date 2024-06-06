@@ -8,12 +8,12 @@ class SimpleNN:
         self.output_size = output_size
         self.learning_rate = learning_rate
         
-        # Инициализация весов
-        self.weights_input_hidden1 = np.random.randn(self.input_size, self.hidden_size1)
-        self.weights_hidden1_hidden2 = np.random.randn(self.hidden_size1, self.hidden_size2)
-        self.weights_hidden2_output = np.random.randn(self.hidden_size2, self.output_size)
+        # Веса
+        self.weights_input_hidden1 = np.random.randn(self.input_size, self.hidden_size1) * np.sqrt(2 / self.input_size)
+        self.weights_hidden1_hidden2 = np.random.randn(self.hidden_size1, self.hidden_size2) * np.sqrt(2 / self.hidden_size1)
+        self.weights_hidden2_output = np.random.randn(self.hidden_size2, self.output_size) * np.sqrt(2 / self.hidden_size2)
         
-        # Инициализация смещений (bias)
+        # Смещения
         self.bias_hidden1 = np.zeros((1, self.hidden_size1))
         self.bias_hidden2 = np.zeros((1, self.hidden_size2))
         self.bias_output = np.zeros((1, self.output_size))
@@ -23,6 +23,12 @@ class SimpleNN:
     
     def sigmoid_derivative(self, x):
         return x * (1 - x)
+    
+    def relu(self, x):
+        return np.maximum(0, x)
+    
+    def relu_derivative(self, x):
+        return np.where(x > 0, 1, 0)
     
     def forward(self, x):
         self.hidden1 = self.sigmoid(np.dot(x, self.weights_input_hidden1) + self.bias_hidden1)
@@ -52,14 +58,14 @@ class SimpleNN:
         for epoch in range(epochs):
             output = self.forward(x)
             self.backward(x, y, output)
-            if epoch % 1000 == 0:
+            if epoch % 5000 == 0:
                 loss = np.mean(np.square(y - output))
                 print(f'Epoch {epoch}, Loss: {loss}')
     
     def predict(self, x):
         return self.forward(x)
 
-# Сбор данных
+# Подготовка данных для нейронки
 lower_to_upper = {chr(i): chr(i - 32) for i in range(97, 123)}
 upper_to_lower = {chr(i): chr(i + 32) for i in range(65, 91)}
 
@@ -77,14 +83,14 @@ for upper, lower in upper_to_lower.items():
 data = np.array(data).reshape(-1, 1)
 labels = np.array(labels).reshape(-1, 1)
 
-data = data / 127.0
-labels = labels / 127.0
+data = data / 127
+labels = labels / 127
 
-# Создание и обучение модели
+# Параметры
 input_size = 1
-hidden_size1 = 32
-hidden_size2 = 16
-output_size = 12
+hidden_size1 = 4
+hidden_size2 = 8
+output_size = 18
 learning_rate = 0.1
 epochs = 200000
 
@@ -96,7 +102,7 @@ def convert_letter(letter, nn):
     predicted_code = nn.predict(np.array([[letter_code]]))[0][0] * 127
     return chr(int(round(predicted_code)))
 
-# Функция для тестирования
+# Тесты
 def test_convert_letter(nn):
     test_cases = {
         'a': 'A',
@@ -126,9 +132,9 @@ def test_convert_letter(nn):
     
     print(f"Passed {passed} out of {len(test_cases)} tests.")
 
-# Пример использования
-print(convert_letter('a', nn))  # Должен вернуть 'A'
-print(convert_letter('A', nn))  # Должен вернуть 'a'
+# Тест
+print(convert_letter('a', nn))
+print(convert_letter('A', nn)) 
 
-# Запуск тестов
+# БОЛЬШЕ ТЕСТОВ
 test_convert_letter(nn)
